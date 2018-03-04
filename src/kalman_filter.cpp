@@ -36,6 +36,7 @@ void KalmanFilter::Update(const VectorXd &z) {
     * update the state by using Kalman Filter equations
   */
     VectorXd y = z - H_*x_;
+    cout << "H = " << H_ << endl;
     MatrixXd K = P_*H_.transpose()*(H_*P_*H_.transpose() + R_).inverse();
     long x_size = x_.size();
     MatrixXd I = MatrixXd::Identity(x_size, x_size);
@@ -48,7 +49,12 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   TODO:
     * update the state by using Extended Kalman Filter equations
   */
-    // Calculate the predicted measurement from the state
+    // Calculate the predicted measurement from the  state
+    /*
+    cout << "EKF update" << endl;
+    cout << "R = " << R_ << endl;
+    cout << "H = " << H_ << endl;
+     */
     VectorXd h;
     float phi, px, py, vx, vy;
     px = x_(0); py = x_(1); vx = x_(2); vy = x_(3);
@@ -71,16 +77,24 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
     
     h << rho, phi, rho_dot;
     VectorXd y = z - h;
+    if(abs(y(1)) > M_PI)
+    {
+        cout << "Original = " << y(1) << endl;
+        y(1) = std::fmod(y(1), 2*M_PI);
+        cout << "Modified = " << y(1) << endl;
+    }
+   /*
     while(y(1) > M_PI)
     {
         cout << "Pi = " << M_PI << endl;
         y(1) -= 2*M_PI;
     }
-    while(y(1) < M_PI)
+    while(y(1) < -M_PI)
     {
         cout << "Pi = " << M_PI << endl;
         y(1) += 2*M_PI;
     }
+    */
     MatrixXd Ht = H_.transpose();
     MatrixXd S = H_ * P_ * Ht + R_;
     MatrixXd Si = S.inverse();
