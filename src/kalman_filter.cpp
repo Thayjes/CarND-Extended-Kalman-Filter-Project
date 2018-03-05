@@ -36,8 +36,11 @@ void KalmanFilter::Update(const VectorXd &z) {
     * update the state by using Kalman Filter equations
   */
     VectorXd y = z - H_*x_;
-    cout << "H = " << H_ << endl;
-    MatrixXd K = P_*H_.transpose()*(H_*P_*H_.transpose() + R_).inverse();
+    MatrixXd Ht = H_.transpose();
+    MatrixXd S = H_ * P_ * Ht + R_;
+    MatrixXd Si = S.inverse();
+    MatrixXd PHt = P_ * Ht;
+    MatrixXd K = PHt * Si;
     long x_size = x_.size();
     MatrixXd I = MatrixXd::Identity(x_size, x_size);
     x_ = x_ + K*y;
@@ -61,18 +64,10 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
     h = VectorXd(3);
     float c1 = px*px + py*py;
     float rho = sqrt(c1);
-    if(abs(px) < 0.0001){
-        std::cout << "Error while converting vector x_ to polar co-ordinates: Division by zero!" << std::endl;
-        px = 0.0001;
-    }
     phi = atan2(py, px);
     
     
     float rho_dot;
-    if(abs(rho) < 0.0001){
-        std::cout << "Error while converting vector x_ to polar co-ordinates: Division by zero!" << std::endl;
-        rho = 0.0001;
-    }
     rho_dot = (px*vx + py*vy) / rho;
     
     h << rho, phi, rho_dot;
